@@ -1,11 +1,18 @@
 package com.jessie.rest.webservices.restfulwebservices.user;
 
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
+
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.web.servlet.ServletComponentScan;
+import org.springframework.hateoas.EntityModel;
+import org.springframework.hateoas.server.mvc.WebMvcLinkBuilder;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
+import javax.annotation.Resource;
 import javax.validation.Valid;
 import java.net.URI;
 import java.nio.file.attribute.UserPrincipalNotFoundException;
@@ -21,11 +28,21 @@ public class UserResource<T> {
         return service.findAll();
     }
     @GetMapping("/users/{id}")
-    public User retrieveUser(@PathVariable int id) {
+    public EntityModel<User> retrieveUse(@PathVariable int id) {
         User user = service.findOne(id);
         if(user==null)
             throw new UserNotFoundException("id-" + id);
-        return user;
+        // "all-users", SERVER_PATH + "/users"
+        // retrieveAllUsers
+        EntityModel<User> resource = EntityModel.of(user);
+
+        WebMvcLinkBuilder linkTo = linkTo(methodOn(this.getClass()).retrieveAllUsers());
+
+        resource.add(linkTo.withRel("all-users"));
+
+        // HATEOAS
+
+        return resource;
     }
 
     @DeleteMapping("/users/{id}")
